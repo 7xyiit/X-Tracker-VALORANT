@@ -25,7 +25,7 @@ X Tracker Valorant, oyuncuların Valorant oyunundaki performanslarını takip ed
 ## Kullanım
 **Valorant açık olmalıdır!**
 <br><br>
-## Sorunlar
+## Destek ve Sorun Bildirimi
 **Herhangi bir sorunla karşılaşırsanız, lütfen GitHub üzerinden bildirimde bulunun.**
 <br><br>
 ## API Kaynakları
