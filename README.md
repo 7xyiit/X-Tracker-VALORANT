@@ -34,6 +34,6 @@ X Tracker Valorant, oyuncuların Valorant oyunundaki performanslarını takip ed
 - [Valorant-API](https://valorant-api.com/)
 <br><br>
 ## Sorumluluk reddi beyanı
-BU PROJE, RIOT GAMES TARAFINDAN DESTEKLENMEMEKTE VEYA İLİŞKİLENDİRİLMEMEKTEDİR. <br> Riot Games ve tüm ilgili mülkler, Riot Games, Inc.'in ticari markaları veya tescilli ticari markalarıdır.
+BU PROJE, RIOT GAMES TARAFINDAN DESTEKLENMEMEKTE VEYA İLİŞKİLENDİRİLMEMEKTEDİR. <br> Riot Games ve tüm ilgili mülkler, Riot Games, Inc.'in ticari markaları veya tescilli ticari markalarıdır. 
 
-**Riot'un API kurallarına uyulmasına özen gösterilmiş olsa da, bu yazılımın kullanımı tamamen kendi riskinizdedir.**
+**Riot'un API kurallarına uyulmasına özen gösterilmiş olsa da, bu yazılımın kullanımı tamamen kendi riskinizdedir. <br>Ayrıca, herhangi bir dosyada değişiklik yapılmamaktadır.**
