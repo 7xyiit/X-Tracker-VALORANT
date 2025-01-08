@@ -13,7 +13,7 @@
     <li><a href="#kullanım">Kullanım</a></li>
     <li><a href="#destek-ve-sorun-bildirimi">Destek ve Sorun Bildirimi</a></li>
     <li><a href="#api-kaynakları">API Kaynakları</a></li>
-    <li><a href="#sorumluluk-reddi-beyanı">Sorumluluk reddi beyanı</a></li>
+    <li><a href="#sorumluluk-reddi-beyanı">Sorumluluk Reddi Beyanı</a></li>
   </ol>
 
 ## Proje Hakkında
@@ -45,7 +45,7 @@ X Tracker Valorant, oyuncuların Valorant oyunundaki performanslarını takip ed
 - [VALAPIDOCS - techchrism](https://valapidocs.techchrism.me/)
 - [Valorant-API](https://valorant-api.com/)
 <br><br>
-## Sorumluluk reddi beyanı
+## Sorumluluk Reddi Beyanı
 BU PROJE, RIOT GAMES TARAFINDAN DESTEKLENMEMEKTE VEYA İLİŞKİLENDİRİLMEMEKTEDİR. <br> Riot Games ve tüm ilgili mülkler, Riot Games, Inc.'in ticari markaları veya tescilli ticari markalarıdır. 
 
 **Riot'un API kurallarına uyulmasına özen gösterilmiş olsa da, bu yazılımın kullanımı tamamen kendi riskinizdedir. <br>Ayrıca, herhangi bir dosyada değişiklik yapılmamaktadır.**
