@@ -7,7 +7,7 @@
         <img alt="GitHub Downloads (all assets, latest release)" src="https://img.shields.io/github/downloads/7xyiit/X-Tracker-VALORANT/latest/total?style=for-the-badge&logo=github&logoSize=16&label=DOWNLOADS&color=green">
     </a>
   <ol>
-    <li><a href="#proje-hakkinda">Proje Hakkında</a></li>
+    <li><a href="#proje-hakkında">Proje Hakkında</a></li>
   </ol>
 
 ## Proje Hakkında
