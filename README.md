@@ -4,44 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proje Başlığı</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f4;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        header img {
-            width: 150px;
-            height: auto;
-        }
-        table {
-            width: 80%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            text-align: center;
-        }
-        table th, table td {
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-        table th {
-            background-color: #4CAF50;
-            color: white;
-        }
-        table td img {
-            width: 100px;
-            height: 100px;
-        }
-    </style>
+    <!-- CSS dosyasını bağlama -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
