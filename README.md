@@ -6,8 +6,12 @@
     <a href="https://github.com/7xyiit/X-Tracker-VALORANT/releases/">
         <img alt="GitHub Downloads (all assets, latest release)" src="https://img.shields.io/github/downloads/7xyiit/X-Tracker-VALORANT/latest/total?style=for-the-badge&logo=github&logoSize=16&label=DOWNLOADS&color=green">
     </a>
+  <br><br>
   <ol>
     <li><a href="#proje-hakkında">Proje Hakkında</a></li>
+    <li><a href="#kullanım">Kullanım</a></li>
+    <li><a href="#api-kaynakları">API Kaynakları</a></li>
+    <li><a href="#sorumluluk-reddi-beyanı">Sorumluluk reddi beyanı</a></li>
   </ol>
 
 ## Proje Hakkında
