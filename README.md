@@ -10,6 +10,7 @@
   <ol>
     <li><a href="#proje-hakkında">Proje Hakkında</a></li>
     <li><a href="#kullanım">Kullanım</a></li>
+    <li><a href="#destek-ve-sorun-bildirimi">Destek ve Sorun Bildirimi</a></li>
     <li><a href="#api-kaynakları">API Kaynakları</a></li>
     <li><a href="#sorumluluk-reddi-beyanı">Sorumluluk reddi beyanı</a></li>
   </ol>
