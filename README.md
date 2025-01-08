@@ -31,6 +31,7 @@ X Tracker Valorant, oyuncuların Valorant oyunundaki performanslarını takip ed
 - Skin: Oyuncuların kullandığı Vandal skinini gösterir.
 - Rank: Oyuncuların ranklarını gösterir.
 - Peak Rank: Oyuncuların ulaştığı en yüksek rank'ı gösterir.
+- RR: Oyuncunun genel dereceli puanını (Rank Rating) gösterir.
 - HS%: Oyuncunun yaptığı kafadan vuruşların oranını gösterir.
 - Seviye: Oyuncunun ulaştığı seviye veya deneyim puanını gösterir.
 
