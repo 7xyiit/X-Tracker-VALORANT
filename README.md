@@ -32,7 +32,7 @@ X Tracker, oyuncuların Valorant oyunundaki performanslarını takip edebileceğ
 - Rank: Oyuncuların ranklarını gösterir.
 - Peak Rank: Oyuncuların ulaştığı en yüksek rank'ı gösterir.
 - RR: Oyuncunun genel dereceli puanını (Rank Rating) gösterir.
-- HS%: Oyuncunun yaptığı kafadan vuruşların oranını gösterir. **(HS% oranı ? ise, kişinin rank oyunu olmayabilir.)**
+- HS%: Oyuncunun son dereceli maçında yaptığı kafadan vuruşların oranını gösterir. **(HS% oranı ? ise, kişinin rank oyunu olmayabilir.)**
 - Seviye: Oyuncunun ulaştığı seviye veya deneyim puanını gösterir.
 
 ## Kullanım
