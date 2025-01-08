@@ -19,7 +19,7 @@
 ## Proje Hakkında
 X Tracker, oyuncuların Valorant oyunundaki performanslarını takip edebileceği bir araçtır. Bu proje, kullanıcıların maç verilerini analiz etmelerine, istatistiklerini görselleştirmelerine ve zaman içindeki gelişimlerini izlemelerine olanak tanır.
 <br>
-<img src="assets/ekran.png" width="1000" height="625" align="center">
+<img src="assets/ekran.png" width="1000" height="600" align="center">
 |Parti|Ajan|Oyuncu|Skin|Rank|Peak Rank|HS Oranı|Seviye|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 |![Parti](assets/parti.png)|![Ajan](assets/ajan.png)|![Oyuncu](assets/oyuncu.png)|![Skin](assets/skin.png)|![Rank](assets/rank.png)|![Peak](assets/peak_rank.png)|![HS](assets/hs_orani.png)|![Seviye](assets/seviye.png)|
