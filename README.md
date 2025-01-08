@@ -24,11 +24,11 @@ X Tracker Valorant, oyuncuların Valorant oyunundaki performanslarını takip ed
 
 ## Kullanım
 **Valorant açık olmalıdır!**
-<br><br><br>
+<br><br>
 ## API Kaynakları
 - [VALAPIDOCS - techchrism](https://valapidocs.techchrism.me/)
 - [Valorant-API](https://valorant-api.com/)
-<br><br><br>
+<br><br>
 ## Sorumluluk reddi beyanı
 **BU PROJE, RIOT GAMES TARAFINDAN DESTEKLENMEMEKTE VEYA İLİŞKİLENDİRİLMEMEKTEDİR.** <br> Riot Games ve tüm ilgili mülkler, Riot Games, Inc.'in ticari markaları veya tescilli ticari markalarıdır.
 
