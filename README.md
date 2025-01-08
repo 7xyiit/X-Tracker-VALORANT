@@ -36,7 +36,7 @@ X Tracker Valorant, oyuncuların Valorant oyunundaki performanslarını takip ed
 - Seviye: Oyuncunun ulaştığı seviye veya deneyim puanını gösterir.
 
 ## Kullanım
-**Valorant açık olmalıdır!**
+**Valorant açık olmalıdır ve oyunun lobisinde olmanız gerekmektedir.**
 <br><br>
 ## Destek ve Sorun Bildirimi
 **Herhangi bir sorunla karşılaşırsanız, lütfen GitHub üzerinden bildirimde bulunun.**
