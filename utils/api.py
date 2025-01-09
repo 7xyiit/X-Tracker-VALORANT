@@ -163,8 +163,8 @@ def get_match_loadouts(match_id, region, shard, headers):
             player_id = loadout.get("Loadout", {}).get("Subject")
             items = loadout.get("Loadout", {}).get("Items", {})
             
-            # Ajan bilgisini kaydet
-            agent_id = loadout.get("CharacterID", "")
+            # Ajan bilgisini kaydet (küçük harfe çevirerek)
+            agent_id = loadout.get("CharacterID", "").lower()
             if agent_id:
                 player_agents[player_id] = agent_id
             
