@@ -104,6 +104,8 @@ async def monitor_game_status(port, headers, puuid):
                             
                             auth = headers['Authorization'].split(' ')[1]
                             websocket_task = asyncio.create_task(websocket_connect(port, auth))
+                            websocket_task.get_loop().call_soon_threadsafe(lambda: setattr(websocket_task, 'match_details', match_details))
+                            websocket_task.get_loop().call_soon_threadsafe(lambda: setattr(websocket_task, 'player_names', player_names))
                 else:
                     if previous_match_id:
                         print_status("🏁 Oyun bitti! Yeni oyun bekleniyor...", True, "warning")
