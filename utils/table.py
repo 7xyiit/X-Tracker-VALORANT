@@ -1,9 +1,10 @@
 from tabulate import tabulate
 from .colors import Colors
 from .api import get_vandal_skins, get_agent_names
+import unicodedata
 
 def create_player_table(match_details, player_names, loadouts=None):
-    headers = ["Parti", "Ajan", "Oyuncu", "Skin", "Rank", "Peak Rank", "HS%", "Seviye"]
+    headers = ["Parti", "Ajan", "Oyuncu", "Skin", "Rank", "Peak Rank", "HS%", "WR", "Seviye"]
     attackers_data = []
     defenders_data = []
     
@@ -22,6 +23,7 @@ def create_player_table(match_details, player_names, loadouts=None):
     player_peak_ranks = match_details.get("PlayerPeakRanks", {})
     player_levels = match_details.get("PlayerLevels", {})
     player_hs_percentages = match_details.get("PlayerHSPercentages", {})
+    player_winrates = match_details.get("PlayerWinrates", {})
     player_parties = match_details.get("PlayerParties", {})
     
     for player in match_details.get("Players", []):
@@ -32,6 +34,7 @@ def create_player_table(match_details, player_names, loadouts=None):
         for name_data in player_names:
             if name_data.get("Subject") == player_puuid:
                 player_name = f"{name_data.get('GameName', '?')}#{name_data.get('TagLine', '?')}"
+                player_name = unicodedata.normalize('NFKC', player_name)  # Unicode normalizasyonu
                 break
         
         # Ajan ismini bul
@@ -49,8 +52,9 @@ def create_player_table(match_details, player_names, loadouts=None):
         # Level bilgisini al
         level = player_levels.get(player_puuid, "?")
         
-        # HS oranını al
+        # HS oranını ve Winrate'i al
         hs_percentage = player_hs_percentages.get(player_puuid, "?")
+        winrate = player_winrates.get(player_puuid, "?")
         
         # Parti durumunu kontrol et
         party_status = "P" if player_puuid in player_parties else " "
@@ -66,6 +70,7 @@ def create_player_table(match_details, player_names, loadouts=None):
             rank,
             peak_rank,
             hs_percentage,
+            winrate,
             level
         ]
         

@@ -1,6 +1,7 @@
 import time
 import requests
 from .colors import Colors
+from .cache import cache
 
 def get_last_competitive_match(puuid, shard, headers):
     try:
@@ -22,6 +23,11 @@ def get_last_competitive_match(puuid, shard, headers):
         return None
 
 def get_headshot_percentage(puuid, shard, headers):
+    # Önce cache'e bak
+    cached_data = cache.get('hs_stats', puuid)
+    if cached_data:
+        return cached_data
+        
     try:
         # Son rekabetçi maçı al
         match_id = get_last_competitive_match(puuid, shard, headers)
@@ -62,7 +68,12 @@ def get_headshot_percentage(puuid, shard, headers):
             else:
                 color = "\033[38;5;120m"  # Açık yeşil
                 
-            return f"{color}%{hs_percentage}{Colors.RESET}"
+            result = f"{color}%{hs_percentage}{Colors.RESET}"
+            
+            # Sonucu cache'e kaydet
+            cache.set('hs_stats', puuid, result)
+            
+            return result
         
         return "?"
     except Exception as e:

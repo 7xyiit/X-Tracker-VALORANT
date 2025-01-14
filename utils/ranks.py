@@ -1,5 +1,6 @@
 from .colors import Colors
 from .api import get_current_season_id
+from .cache import cache
 import requests
 
 def get_rank_name(tier):
@@ -35,6 +36,11 @@ def get_rank_name(tier):
     return f"{rank_color}{rank_name}{Colors.RESET}"
 
 def get_player_ranks(puuid, shard, headers):
+    # Önce cache'e bak
+    cached_data = cache.get('ranks', puuid)
+    if cached_data:
+        return cached_data
+        
     try:
         response = requests.get(
             f'https://pd.{shard}.a.pvp.net/mmr/v1/players/{puuid}',
@@ -45,17 +51,38 @@ def get_player_ranks(puuid, shard, headers):
         rank_data = response.json()
         
         if not rank_data:
-            return "Derecesiz", "Derecesiz"
+            return "Derecesiz", "Derecesiz", "?"
             
         # Güncel sezon ID'sini al
         current_season = get_current_season_id(shard, headers)
         if not current_season:
-            return "Derecesiz", "Derecesiz"
+            return "Derecesiz", "Derecesiz", "?"
             
         # Güncel rank bilgisini bul
         queue_skills = rank_data.get("QueueSkills", {})
         competitive = queue_skills.get("competitive", {})
         seasonal_info = competitive.get("SeasonalInfoBySeasonID", {})
+        
+        # Winrate hesaplama
+        total_wins = 0
+        total_games = 0
+        for season_info in seasonal_info.values():
+            if season_info:
+                total_wins += season_info.get("NumberOfWins", 0)
+                total_games += season_info.get("NumberOfGames", 0)
+        
+        # Winrate hesapla ve renklendir
+        winrate = "?"
+        if total_games > 0:
+            winrate_value = (total_wins / total_games) * 100
+            # Winrate'e göre renk seç
+            if winrate_value < 25:
+                color = "\033[38;5;130m"  # Kahverengi
+            elif winrate_value < 50:
+                color = "\033[38;5;40m"   # Açık yeşil
+            else:
+                color = "\033[38;5;28m"   # Hafif kapalı yeşil
+            winrate = f"{color}%{int(winrate_value)}{Colors.RESET} ({total_games})"
         
         # Güncel sezon rankı ve RR
         current_season_data = seasonal_info.get(current_season, {})
@@ -86,6 +113,11 @@ def get_player_ranks(puuid, shard, headers):
         if peak_tier == 0:
             peak_tier = current_tier
             
-        return current_rank, get_rank_name(peak_tier)
+        result = (current_rank, get_rank_name(peak_tier), winrate)
+        
+        # Sonucu cache'e kaydet
+        cache.set('ranks', puuid, result)
+            
+        return result
     except Exception as e:
-        return "Derecesiz", "Derecesiz" 
+        return "Derecesiz", "Derecesiz", "?" 

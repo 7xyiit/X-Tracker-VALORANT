@@ -82,17 +82,19 @@ async def get_game_info(port, auth_headers, puuid):
         player_parties = get_player_party_info(puuid, region, shard, headers)
         match_details["PlayerParties"] = player_parties
             
-        # Oyuncu ranklarını ve HS oranlarını al
+        # Oyuncu ranklarını, HS oranlarını ve winrate'leri al
         player_ranks = {}
         player_peak_ranks = {}
         player_hs_percentages = {}
+        player_winrates = {}
         for i, player_puuid in enumerate(player_puuids):
             if i > 0:  # İlk istek hariç her istekten önce bekle
                 await asyncio.sleep(1.5)  # 1.5 saniye bekle
             try:
-                current_rank, peak_rank = get_player_ranks(player_puuid, shard, headers)
+                current_rank, peak_rank, winrate = get_player_ranks(player_puuid, shard, headers)
                 player_ranks[player_puuid] = current_rank
                 player_peak_ranks[player_puuid] = peak_rank
+                player_winrates[player_puuid] = winrate
                 
                 # HS oranını al
                 hs_percentage = get_headshot_percentage(player_puuid, shard, headers)
@@ -101,10 +103,12 @@ async def get_game_info(port, auth_headers, puuid):
                 player_ranks[player_puuid] = "?"
                 player_peak_ranks[player_puuid] = "?"
                 player_hs_percentages[player_puuid] = "?"
+                player_winrates[player_puuid] = "?"
         
         match_details["PlayerRanks"] = player_ranks
         match_details["PlayerPeakRanks"] = player_peak_ranks
         match_details["PlayerHSPercentages"] = player_hs_percentages
+        match_details["PlayerWinrates"] = player_winrates
         
         return match_details, player_names, loadouts
         

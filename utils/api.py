@@ -3,6 +3,7 @@ import base64
 import os
 from urllib3.exceptions import InsecureRequestWarning
 from .colors import Colors
+from .cache import cache
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 def get_lockfile():
@@ -75,13 +76,13 @@ def get_agent_names():
             "Reyna": "\033[38;5;165m",      # Mor
             "Yoru": "\033[38;5;27m",        # Mavi
             "Neon": "\033[38;5;51m",        # Neon Mavi
-            "Iso": "\033[38;5;202m",        # Turuncu-Kırmızı
+            "Iso": "\033[38;5;147m",        # Açık Morumsu
             # Initiators
             "Sova": "\033[38;5;75m",        # Açık Mavi
             "Breach": "\033[38;5;166m",     # Turuncu-Kahve
             "Skye": "\033[38;5;114m",       # Yeşil
             "KAY/O": "\033[38;5;87m",       # Turkuaz
-            "Fade": "\033[38;5;54m",        # Koyu Mor
+            "Fade": "\033[38;5;61m",        # Açık Lacivert
             "Gekko": "\033[38;5;84m",       # Açık Yeşil
             # Controllers
             "Brimstone": "\033[38;5;130m",  # Kahverengi
@@ -94,7 +95,11 @@ def get_agent_names():
             "Cypher": "\033[38;5;251m",     # Gümüş
             "Sage": "\033[38;5;123m",       # Açık Turkuaz
             "Chamber": "\033[38;5;220m",    # Altın
-            "Deadlock": "\033[38;5;145m"    # Gri
+            "Deadlock": "\033[38;5;117m",   # Buz Mavisi
+            # Yeni Ajanlar
+            "Vyse": "\033[38;5;140m",       # Açık-Koyu Mor Arası
+            "Clove": "\033[38;5;218m",      # Tatlı Açık Pembe
+            "Tejo": "\033[38;5;215m"        # Hafif Açık Turuncu
         }
         
         # UUID'leri ajan isimleriyle eşleştir
@@ -111,6 +116,11 @@ def get_agent_names():
         return {}
 
 def get_player_party_info(puuid, region, shard, headers):
+    # Önce cache'e bak
+    cached_data = cache.get('party_info', puuid)
+    if cached_data:
+        return cached_data
+        
     try:
         # Oyuncunun parti bilgisini al
         response = requests.get(
@@ -139,12 +149,20 @@ def get_player_party_info(puuid, region, shard, headers):
         for member in party_details.get("Members", []):
             party_members.add(member.get("Subject"))
             
+        # Sonucu cache'e kaydet
+        cache.set('party_info', puuid, party_members)
+            
         return party_members
     except Exception as e:
         print(f"Parti bilgileri alınamadı: {e}")
         return {}
 
 def get_match_loadouts(match_id, region, shard, headers):
+    # Önce cache'e bak
+    cached_data = cache.get('match_loadouts', match_id)
+    if cached_data:
+        return cached_data
+        
     VANDAL_UUID = "9c82e19d-4575-0200-1a81-3eacf00cf872"
     try:
         response = requests.get(
@@ -183,6 +201,10 @@ def get_match_loadouts(match_id, region, shard, headers):
         
         loadouts_data["PlayerSkins"] = player_skins
         loadouts_data["PlayerAgents"] = player_agents
+        
+        # Sonucu cache'e kaydet
+        cache.set('match_loadouts', match_id, loadouts_data)
+        
         return loadouts_data
     except Exception as e:
         print(f"Loadout bilgileri alınamadı: {e}")
@@ -216,6 +238,11 @@ def get_match_id(puuid, region, shard, headers):
         return None
 
 def get_match_details(match_id, region, shard, headers):
+    # Önce cache'e bak
+    cached_data = cache.get('match_details', match_id)
+    if cached_data:
+        return cached_data
+        
     try:
         response = requests.get(
             f'https://glz-{region}-1.{shard}.a.pvp.net/core-game/v1/matches/{match_id}',
@@ -234,12 +261,24 @@ def get_match_details(match_id, region, shard, headers):
             player_levels[player_id] = account_level
             
         match_data["PlayerLevels"] = player_levels
+        
+        # Sonucu cache'e kaydet
+        cache.set('match_details', match_id, match_data)
+        
         return match_data
     except Exception as e:
         print(f"Maç detayları alma hatası: {e}")
         return None
 
 def get_player_names(puuids, shard, headers):
+    # Puuid listesini string'e çevir (cache key olarak kullanmak için)
+    puuid_key = ','.join(sorted(puuids))
+    
+    # Önce cache'e bak
+    cached_data = cache.get('player_names', puuid_key)
+    if cached_data:
+        return cached_data
+        
     try:
         response = requests.put(
             f'https://pd.{shard}.a.pvp.net/name-service/v2/players',
@@ -248,12 +287,22 @@ def get_player_names(puuids, shard, headers):
             verify=False
         )
         response.raise_for_status()
-        return response.json()
+        names_data = response.json()
+        
+        # Sonucu cache'e kaydet
+        cache.set('player_names', puuid_key, names_data)
+        
+        return names_data
     except Exception as e:
         print(f"Oyuncu isimleri alma hatası: {e}")
         return None
 
 def get_current_season_id(shard, headers):
+    # Önce cache'e bak
+    cached_data = cache.get('season_info', shard)
+    if cached_data:
+        return cached_data
+        
     try:
         response = requests.get(
             f'https://shared.{shard}.a.pvp.net/content-service/v3/content',
@@ -264,10 +313,17 @@ def get_current_season_id(shard, headers):
         content_data = response.json()
         
         # Aktif sezonu bul (isActive=true ve type=act)
+        season_id = None
         for season in content_data.get("Seasons", []):
             if season.get("IsActive") and season.get("Type") == "act":
-                return season.get("ID")
-        return None
+                season_id = season.get("ID")
+                break
+                
+        # Sonucu cache'e kaydet
+        if season_id:
+            cache.set('season_info', shard, season_id)
+            
+        return season_id
     except Exception as e:
         print(f"Sezon bilgisi alınamadı: {e}")
         return None
