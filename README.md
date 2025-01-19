@@ -46,6 +46,11 @@ X Tracker, oyuncuların Valorant oyunundaki performanslarını takip edebileceğ
 - [VALAPIDOCS - techchrism](https://valapidocs.techchrism.me/)
 - [Valorant-API](https://valorant-api.com/)
 <br><br>
+## Lisans
+Kullanıcılar yazılımı yalnızca indirip inceleyebilir, ancak değiştirme veya dağıtma izni yoktur.
+<br>
+Daha fazla bilgi için: [LICENSE](LICENSE)
+
 ## Sorumluluk Reddi Beyanı
 BU PROJE, RIOT GAMES TARAFINDAN DESTEKLENMEMEKTE VEYA İLİŞKİLENDİRİLMEMEKTEDİR. <br> Riot Games ve tüm ilgili mülkler, Riot Games, Inc.'in ticari markaları veya tescilli ticari markalarıdır. 
 
