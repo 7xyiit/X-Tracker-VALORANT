@@ -47,7 +47,7 @@ X Tracker, oyuncuların Valorant oyunundaki performanslarını takip edebileceğ
 - [Valorant-API](https://valorant-api.com/)
 <br><br>
 ## Lisans
-Kullanıcılar yazılımı yalnızca indirip inceleyebilir, ancak değiştirme veya dağıtma izni yoktur.
+Kullanıcılar yazılımı yalnızca indirip inceleyebilir, çalıştırabilir, ancak değiştirme veya dağıtma izni yoktur.
 <br>
 Daha fazla bilgi için: [LICENSE](LICENSE)
 
