@@ -48,32 +48,58 @@ def print_status(message, clear_screen=False, status_type="info"):
     print(f"{Colors.BOLD}[{timestamp}]{Colors.RESET} {prefix} {message}")
 
 async def websocket_connect(port, auth):
-    uri = f"wss://127.0.0.1:{port}"
     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     ssl_context.check_hostname = False
     ssl_context.verify_mode = ssl.CERT_NONE
     
-    headers = {
-        "Authorization": f"Basic {auth}"
-    }
-    
     try:
-        async with websockets.connect(uri, ssl=ssl_context, extra_headers=headers) as websocket:
-            print_status("📡 Websocket bağlantısı başarılı!")
-            
-            while True:
-                try:
-                    message = await websocket.recv()
-                    data = json.loads(message)
-                    
-                    if data.get("eventType") == "Update":
-                        if hasattr(websocket, 'match_details') and hasattr(websocket, 'player_names'):
-                            print_status("🔄 Bilgiler güncellendi!", True)
-                            print(create_player_table(websocket.match_details, websocket.player_names))
+        # Önce yeni websockets versiyonu için extra_headers ile dene
+        uri = f"wss://127.0.0.1:{port}"
+        headers = {
+            "Authorization": f"Basic {auth}"
+        }
+        
+        try:
+            async with websockets.connect(uri, ssl=ssl_context, extra_headers=headers) as websocket:
+                print_status("📡 Websocket bağlantısı başarılı!")
+                
+                while True:
+                    try:
+                        message = await websocket.recv()
+                        data = json.loads(message)
                         
-                except websockets.exceptions.ConnectionClosed:
-                    print_status("❌ Websocket bağlantısı kapandı!")
-                    break
+                        if data.get("eventType") == "Update":
+                            # Oyun güncellemesi algılandı
+                            print_status("🔄 Oyun durumu güncellendi!")
+                            
+                    except websockets.exceptions.ConnectionClosed:
+                        print_status("❌ Websocket bağlantısı kapandı!")
+                        break
+                        
+        except TypeError as e:
+            if "extra_headers" in str(e):
+                # Eski websockets versiyonu için URI authentication
+                password = base64.b64decode(auth).decode().split(':')[1]
+                uri_with_auth = f"wss://riot:{password}@127.0.0.1:{port}"
+                
+                async with websockets.connect(uri_with_auth, ssl=ssl_context) as websocket:
+                    print_status("📡 Websocket bağlantısı başarılı!")
+                    
+                    while True:
+                        try:
+                            message = await websocket.recv()
+                            data = json.loads(message)
+                            
+                            if data.get("eventType") == "Update":
+                                # Oyun güncellemesi algılandı
+                                print_status("🔄 Oyun durumu güncellendi!")
+                                
+                        except websockets.exceptions.ConnectionClosed:
+                            print_status("❌ Websocket bağlantısı kapandı!")
+                            break
+            else:
+                raise e
+                
     except Exception as e:
         print_status(f"⚠️ Websocket bağlantı hatası: {e}")
 
@@ -104,8 +130,6 @@ async def monitor_game_status(port, headers, puuid):
                             
                             auth = headers['Authorization'].split(' ')[1]
                             websocket_task = asyncio.create_task(websocket_connect(port, auth))
-                            websocket_task.get_loop().call_soon_threadsafe(lambda: setattr(websocket_task, 'match_details', match_details))
-                            websocket_task.get_loop().call_soon_threadsafe(lambda: setattr(websocket_task, 'player_names', player_names))
                 else:
                     if previous_match_id:
                         print_status("🏁 Oyun bitti! Yeni oyun bekleniyor...", True, "warning")

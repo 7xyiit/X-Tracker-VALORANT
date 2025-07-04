@@ -11,7 +11,8 @@ from .api import (
     get_match_details,
     get_match_loadouts,
     get_player_names,
-    get_player_party_info
+    get_player_party_info,
+    get_player_level
 )
 from .ranks import get_player_ranks
 from .stats import get_headshot_percentage
@@ -82,14 +83,19 @@ async def get_game_info(port, auth_headers, puuid):
         player_parties = get_player_party_info(puuid, region, shard, headers)
         match_details["PlayerParties"] = player_parties
             
-        # Oyuncu ranklarını, HS oranlarını ve winrate'leri al
+        # Oyuncu ranklarını, HS oranlarını, winrate'leri ve seviyelerini al
         player_ranks = {}
         player_peak_ranks = {}
         player_hs_percentages = {}
         player_winrates = {}
+        player_levels = {}
+        
+        # Önce core-game'den gelen seviye bilgilerini kontrol et
+        core_game_levels = match_details.get("PlayerLevels", {})
+        
         for i, player_puuid in enumerate(player_puuids):
             if i > 0:  # İlk istek hariç her istekten önce bekle
-                await asyncio.sleep(1.5)  # 1.5 saniye bekle
+                await asyncio.sleep(2.0)  # 2 saniye bekle (artırıldı)
             try:
                 current_rank, peak_rank, winrate = get_player_ranks(player_puuid, shard, headers)
                 player_ranks[player_puuid] = current_rank
@@ -97,18 +103,37 @@ async def get_game_info(port, auth_headers, puuid):
                 player_winrates[player_puuid] = winrate
                 
                 # HS oranını al
-                hs_percentage = get_headshot_percentage(player_puuid, shard, headers)
-                player_hs_percentages[player_puuid] = hs_percentage
+                try:
+                    hs_percentage = get_headshot_percentage(player_puuid, shard, headers)
+                    player_hs_percentages[player_puuid] = hs_percentage
+                except Exception as hs_error:
+                    print(f"HS oranı alınamadı ({player_puuid}): {hs_error}")
+                    player_hs_percentages[player_puuid] = "?"  # HS oranını "?" olarak ayarla
+                
+                # Seviye bilgisini al - önce core-game'den gelen veriyi kontrol et
+                level = core_game_levels.get(player_puuid, 0)
+                if level == 0 or level == "?":
+                    # Eğer core-game'den alınamazsa API'den çek
+                    try:
+                        level = get_player_level(player_puuid, shard, headers)
+                    except Exception as level_error:
+                        print(f"Seviye bilgisi alınamadı ({player_puuid}): {level_error}")
+                        level = "?"
+                player_levels[player_puuid] = level
+                
             except Exception as e:
+                print(f"Oyuncu verisi alınamadı ({player_puuid}): {e}")
                 player_ranks[player_puuid] = "?"
                 player_peak_ranks[player_puuid] = "?"
                 player_hs_percentages[player_puuid] = "?"
                 player_winrates[player_puuid] = "?"
+                player_levels[player_puuid] = core_game_levels.get(player_puuid, "?")
         
         match_details["PlayerRanks"] = player_ranks
         match_details["PlayerPeakRanks"] = player_peak_ranks
         match_details["PlayerHSPercentages"] = player_hs_percentages
         match_details["PlayerWinrates"] = player_winrates
+        match_details["PlayerLevels"] = player_levels
         
         return match_details, player_names, loadouts
         

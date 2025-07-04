@@ -1,14 +1,24 @@
 import requests
 import base64
 import os
-from urllib3.exceptions import InsecureRequestWarning
 from .colors import Colors
 from .cache import cache
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+# urllib3 uyarılarını devre dışı bırak
+try:
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+except (ImportError, AttributeError):
+    pass
 
 def get_lockfile():
     try:
-        lockfile_path = os.path.join(os.getenv('LOCALAPPDATA'), R'Riot Games\Riot Client\Config\lockfile')
+        localappdata = os.getenv('LOCALAPPDATA')
+        if not localappdata:
+            print(f"{Colors.ERROR}LOCALAPPDATA environment variable bulunamadı!{Colors.RESET}")
+            return None
+            
+        lockfile_path = os.path.join(localappdata, R'Riot Games\Riot Client\Config\lockfile')
         
         if not os.path.isfile(lockfile_path):
             print(f"{Colors.ERROR}Valorant çalışmıyor! Lütfen oyunu başlatın.{Colors.RESET}")
@@ -30,6 +40,63 @@ def get_local_headers(lockfile):
     return {
         'Authorization': f'Basic {auth}'
     }
+
+def get_player_level(puuid, shard, headers):
+    """Oyuncu seviyesini al"""
+    # Önce cache'e bak
+    cached_data = cache.get('player_level', puuid)
+    if cached_data:
+        return cached_data
+        
+    try:
+        # İlk olarak account-xp endpoint'i deneyelim (sadece kendi seviyesi için çalışır)
+        response = requests.get(
+            f'https://pd.{shard}.a.pvp.net/account-xp/v1/players/{puuid}',
+            headers=headers,
+            verify=False
+        )
+        
+        if response.status_code == 200:
+            level_data = response.json()
+            
+            # Farklı veri yapılarını deneyerek seviye bilgisini bul
+            level = None
+            if 'Progress' in level_data:
+                level = level_data['Progress'].get('Level', 0)
+            elif 'Level' in level_data:
+                level = level_data['Level']
+            elif 'AccountLevel' in level_data:
+                level = level_data['AccountLevel']
+            
+            if level is not None and level > 0:
+                # Sonucu cache'e kaydet
+                cache.set('player_level', puuid, level)
+                return level
+        
+        # Eğer account-xp endpoint'i çalışmazsa, alternatif yol deneyelim
+        # Player MMR endpoint'i kullanarak seviye bilgisini almaya çalış
+        mmr_response = requests.get(
+            f'https://pd.{shard}.a.pvp.net/mmr/v1/players/{puuid}',
+            headers=headers,
+            verify=False
+        )
+        
+        if mmr_response.status_code == 200:
+            mmr_data = mmr_response.json()
+            
+            # MMR verilerinden seviye bilgisini almaya çalış
+            level = mmr_data.get('AccountLevel', 0)
+            
+            if level > 0:
+                # Sonucu cache'e kaydet
+                cache.set('player_level', puuid, level)
+                return level
+        
+        return "Gizli"  # Seviye gizlenmiş
+        
+    except Exception as e:
+        print(f"Oyuncu seviyesi alınamadı ({puuid[:8]}...): {e}")
+        return "Gizli"
 
 def get_vandal_skins():
     VANDAL_UUID = "9c82e19d-4575-0200-1a81-3eacf00cf872"
@@ -252,15 +319,23 @@ def get_match_details(match_id, region, shard, headers):
         response.raise_for_status()
         match_data = response.json()
         
-        # Oyuncu seviyelerini al
+        # Core-game endpoint'inden gelen PlayerIdentity bilgilerini kontrol et
         player_levels = {}
+        
         for player in match_data.get("Players", []):
             player_id = player.get("Subject")
             player_identity = player.get("PlayerIdentity", {})
             account_level = player_identity.get("AccountLevel", 0)
-            player_levels[player_id] = account_level
+            hide_account_level = player_identity.get("HideAccountLevel", False)
             
-        match_data["PlayerLevels"] = player_levels
+            if hide_account_level or account_level == 0:
+                player_levels[player_id] = "Gizli"
+            elif account_level > 0:
+                player_levels[player_id] = account_level
+        
+        # Eğer core-game'den seviye bilgisi alındıysa match_data'ya ekle
+        if player_levels:
+            match_data["PlayerLevels"] = player_levels
         
         # Sonucu cache'e kaydet
         cache.set('match_details', match_id, match_data)
