@@ -11,7 +11,9 @@ def strip_ansi_codes(text):
 def truncate_text(text, max_length):
     """Metni belirtilen uzunlukta kes - renk kodlarını koru"""
     clean_text = strip_ansi_codes(text)
-    if len(clean_text) > max_length:
+    current_width = get_display_width(clean_text)
+    
+    if current_width > max_length:
         # Renk kodlarını tespit et
         color_start = ""
         color_end = ""
@@ -25,17 +27,57 @@ def truncate_text(text, max_length):
         if Colors.RESET in text:
             color_end = Colors.RESET
         
-        # Metni kes
-        truncated_clean = clean_text[:max_length-3] + "..."
+        # Metni karakter karakter keserek doğru genişliğe getir
+        truncated_clean = ""
+        width_so_far = 0
+        target_width = max_length - 3  # "..." için yer bırak
+        
+        for char in clean_text:
+            char_width = get_display_width(char)
+            if width_so_far + char_width > target_width:
+                break
+            truncated_clean += char
+            width_so_far += char_width
+        
+        truncated_clean += "..."
         
         # Renk kodlarını geri ekle
         return color_start + truncated_clean + color_end
     return text
 
+def get_display_width(text):
+    """Unicode karakterlerin terminal genişliğini hesapla"""
+    width = 0
+    for char in text:
+        # Kontrol karakterleri ve null karakterleri atla
+        if ord(char) < 32 or ord(char) == 127:
+            continue
+        
+        # Unicode kategori kontrolleri
+        category = unicodedata.category(char)
+        
+        # Birleşik karakterler (combining marks) genişlik eklemez
+        if category.startswith('M'):
+            continue
+        
+        # East Asian Full-width ve Wide karakterler 2 genişliğinde
+        east_asian_width = unicodedata.east_asian_width(char)
+        if east_asian_width in ('F', 'W'):
+            width += 2
+        # Ambiguous karakterler sistem ayarlarına göre değişir, genelde 1
+        elif east_asian_width == 'A':
+            width += 1
+        # Normal karakterler 1 genişliğinde
+        else:
+            width += 1
+    
+    return width
+
 def pad_text(text, width, align='left'):
     """Metni belirtilen genişlikte hizala"""
     clean_text = strip_ansi_codes(text)
-    padding_needed = max(0, width - len(clean_text))
+    display_width = get_display_width(clean_text)
+    padding_needed = max(0, width - display_width)
     
     if align == 'center':
         left_pad = padding_needed // 2
