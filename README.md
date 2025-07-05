@@ -9,7 +9,6 @@
   <br><br>
   <ol>
     <li><a href="#proje-hakkında">Proje Hakkında</a></li>
-    <li><a href="#özellikler">Özellikler</a></li>
     <li><a href="#kullanım">Kullanım</a></li>
     <li><a href="#destek-ve-sorun-bildirimi">Destek ve Sorun Bildirimi</a></li>
     <li><a href="#api-kaynakları">API Kaynakları</a></li>
@@ -19,22 +18,7 @@
 ## Proje Hakkında
 X Tracker, oyuncuların Valorant oyunundaki performanslarını takip edebileceği bir araçtır. Bu proje, kullanıcıların maç verilerini analiz etmelerine, istatistiklerini görselleştirmelerine ve zaman içindeki gelişimlerini izlemelerine olanak tanır.
 <br>
-<img src="assets/ekran_1.png" width="1000" height="600" align="center">
-|Parti|Ajan|Oyuncu|Skin|Rank|Peak Rank|HS Oranı|Seviye|
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-|![Parti](assets/parti.png)|![Ajan](assets/ajan.png)|![Oyuncu](assets/oyuncu.png)|![Skin](assets/skin.png)|![Rank](assets/rank.png)|![Peak](assets/peak_rank.png)|![HS](assets/hs_orani.png)|![Seviye](assets/seviye.png)|
-
-## Özellikler
-- Parti: Sizi ve partinizdeki diğer kişileri gösterir.
-- Ajan: Oyunda oyuncuların seçtiği ajanları gösterir.
-- Oyuncu: Oyuncu isimlerini gösterir.
-- Skin: Oyuncuların kullandığı Vandal skinini gösterir.
-- Rank: Oyuncuların ranklarını gösterir.
-- Peak Rank: Oyuncuların ulaştığı en yüksek rank'ı gösterir.
-- RR: Oyuncunun genel dereceli puanını (Rank Rating) gösterir.
-- HS%: Oyuncunun son dereceli maçında yaptığı kafadan vuruşların oranını gösterir. **(HS% oranı ? ise, kişinin rank oyunu olmayabilir.)**
-- WR%: Oyuncunun tüm oyunlardaki kazanma oranını ve oynadığı oyun sayısını gösterir. **(WR% oranı ? ise, kişinin oyun bilgileri olmayabilir.)**
-- Seviye: Oyuncunun ulaştığı seviye veya deneyim puanını gösterir.
+<img src="assets/screen.png" width="1000" height="600" align="center">
 
 ## Kullanım
 **Valorant açık olmalı ve oyunun lobisinde bulunmanız gerekmektedir.**
