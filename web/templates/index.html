@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-Tracker - Valorant Oyun Takibi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ff4655, #fd4556);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.active {
+            background: #4ade80;
+            box-shadow: 0 0 10px #4ade80;
+        }
+
+        .status-indicator.inactive {
+            background: #666;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .team-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .team-header {
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .team-header.blue {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.3), transparent);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .team-header.red {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.3), transparent);
+            border-left: 4px solid #ef4444;
+        }
+
+        .players-list {
+            padding: 10px;
+        }
+
+        .player-card {
+            display: grid;
+            grid-template-columns: 2fr 0.8fr 1fr 1fr 2fr;
+            align-items: center;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .player-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+
+        .player-name {
+            font-weight: 500;
+        }
+
+        .player-name .tag {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .player-level {
+            color: #67e8f9;
+            font-size: 0.9rem;
+        }
+
+        .player-rank {
+            font-size: 0.9rem;
+        }
+
+        .player-agent {
+            font-size: 0.9rem;
+        }
+
+        .skin-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .skin-icon {
+            width: 80px;
+            height: 45px;
+            object-fit: contain;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            padding: 5px;
+        }
+
+        .skin-name {
+            font-size: 0.85rem;
+            color: #a1a1aa;
+        }
+
+        .no-game {
+            text-align: center;
+            padding: 80px 20px;
+            color: #666;
+        }
+
+        .no-game-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .no-game h2 {
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 70, 85, 0.3);
+            border-top-color: #ff4655;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff4655, #fd4556);
+            border: none;
+            color: white;
+            font-size: 1.4rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 70, 85, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(255, 70, 85, 0.6);
+        }
+
+        .debug-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .debug-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.6);
+        }
+
+        .debug-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .debug-modal.active {
+            display: flex;
+        }
+
+        .debug-content {
+            background: #1a1a2e;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .debug-header h3 {
+            color: #fff;
+            font-size: 1.1rem;
+        }
+
+        .debug-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .debug-close:hover {
+            color: #ff4655;
+        }
+
+        .debug-body {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(80vh - 70px);
+        }
+
+        .debug-json {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            color: #7ee787;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+
+        .debug-tabs {
+            display: flex;
+            gap: 10px;
+            padding: 0 20px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .debug-tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .debug-tab:hover {
+            color: #fff;
+        }
+
+        .debug-tab.active {
+            color: #ff4655;
+            border-bottom-color: #ff4655;
+        }
+
+        .copy-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 2fr 0.8fr 1fr 1fr 2fr;
+            padding: 10px 20px;
+            color: #666;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 5px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #444;
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: #ff4655;
+            text-decoration: none;
+        }
+
+        /* Rank renkleri */
+        .rank-iron { color: #7c7c7c; }
+        .rank-bronze { color: #cd7f32; }
+        .rank-silver { color: #c0c0c0; }
+        .rank-gold { color: #ffd700; }
+        .rank-platinum { color: #40e0d0; }
+        .rank-diamond { color: #b9f2ff; }
+        .rank-ascendant { color: #90ee90; }
+        .rank-immortal { color: #ff6b6b; }
+        .rank-radiant { color: #fffacd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🎯 X-TRACKER</div>
+            <p class="subtitle">Valorant Oyun Takip Sistemi</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span id="statusText">Bağlanıyor...</span>
+        </div>
+
+        <div id="gameContent">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Oyun bilgileri yükleniyor...</p>
+            </div>
+        </div>
+
+        <button class="refresh-btn" onclick="loadGameData()" title="Yenile">🔄</button>
+        <button class="debug-btn" onclick="openDebugModal()" title="Debug / JSON">{ }</button>
+
+        <!-- Debug Modal -->
+        <div class="debug-modal" id="debugModal">
+            <div class="debug-content">
+                <div class="debug-header">
+                    <h3>🔧 Debug Panel - Raw Data</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="copy-btn" onclick="copyDebugData()">📋 Kopyala</button>
+                        <button class="debug-close" onclick="closeDebugModal()">✕</button>
+                    </div>
+                </div>
+                <div class="debug-tabs">
+                    <button class="debug-tab active" onclick="showTab('game')">Oyun Verisi</button>
+                    <button class="debug-tab" onclick="showTab('players')">Oyuncular</button>
+                    <button class="debug-tab" onclick="showTab('raw')">Raw API</button>
+                </div>
+                <div class="debug-body">
+                    <pre class="debug-json" id="debugJson">Veri yükleniyor...</pre>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>X-Tracker by <a href="https://github.com/7xyiit" target="_blank">@yiitgven7x</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // Oyun verilerini yükle
+        async function loadGameData() {
+            try {
+                const response = await fetch('/api/game');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    renderGame(data);
+                    setStatus(true, `Oyun aktif - Match ID: ${data.match_id.substring(0, 8)}...`);
+                } else {
+                    renderNoGame();
+                    setStatus(false, 'Aktif oyun yok');
+                }
+            } catch (error) {
+                console.error('Veri yüklenemedi:', error);
+                renderNoGame();
+                setStatus(false, 'Bağlantı hatası');
+            }
+        }
+
+        // Durum göstergesini ayarla
+        function setStatus(active, text) {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            indicator.className = `status-indicator ${active ? 'active' : 'inactive'}`;
+            statusText.textContent = text;
+        }
+
+        // Oyun tablosunu render et
+        function renderGame(data) {
+            const blueTeam = data.players.filter(p => p.team_id.toLowerCase() === 'blue');
+            const redTeam = data.players.filter(p => p.team_id.toLowerCase() === 'red');
+            
+            const content = document.getElementById('gameContent');
+            content.innerHTML = `
+                <!-- Mavi Takım -->
+                <div class="team-section">
+                    <div class="team-header blue">
+                        <span>💙</span> MAVİ TAKIM
+                    </div>
+                    <div class="table-header">
+                        <span>Oyuncu</span>
+                        <span>Seviye</span>
+                        <span>Rank</span>
+                        <span>Ajan</span>
+                        <span>Vandal Skin</span>
+                    </div>
+                    <div class="players-list">
+                        ${blueTeam.map(player => renderPlayerCard(player)).join('')}
+                    </div>
+                </div>
+
+                <!-- Kırmızı Takım -->
+                <div class="team-section">
+                    <div class="team-header red">
+                        <span>❤️</span> KIRMIZI TAKIM
+                    </div>
+                    <div class="table-header">
+                        <span>Oyuncu</span>
+                        <span>Seviye</span>
+                        <span>Rank</span>
+                        <span>Ajan</span>
+                        <span>Vandal Skin</span>
+                    </div>
+                    <div class="players-list">
+                        ${redTeam.map(player => renderPlayerCard(player)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Oyuncu kartını render et
+        function renderPlayerCard(player) {
+            const skinIcon = player.skin_icon || '';
+            
+            return `
+                <div class="player-card">
+                    <div class="player-name">
+                        ${player.game_name}<span class="tag">#${player.tag_line}</span>
+                    </div>
+                    <div class="player-level">${player.level || '?'}</div>
+                    <div class="player-rank">${cleanRankText(player.rank)}</div>
+                    <div class="player-agent">${cleanAgentText(player.agent_name)}</div>
+                    <div class="skin-cell">
+                        ${skinIcon 
+                            ? `<img src="${skinIcon}" alt="${player.vandal_skin}" class="skin-icon" onerror="this.style.display='none'">`
+                            : ''
+                        }
+                        <span class="skin-name">${player.vandal_skin}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ANSI kodlarını temizle
+        function cleanRankText(text) {
+            if (!text) return '?';
+            return text.replace(/\033\[[0-9;]*m/g, '');
+        }
+
+        function cleanAgentText(text) {
+            if (!text) return '?';
+            return text.replace(/\033\[[0-9;]*m/g, '');
+        }
+
+        // Oyun yok durumu
+        function renderNoGame() {
+            const content = document.getElementById('gameContent');
+            content.innerHTML = `
+                <div class="no-game">
+                    <div class="no-game-icon">🎮</div>
+                    <h2>Aktif Oyun Yok</h2>
+                    <p>Oyun başladığında bilgiler burada görünecek</p>
+                    <p style="margin-top: 15px; font-size: 0.85rem;">
+                        Tracker'ın çalıştığından emin olun
+                    </p>
+                </div>
+            `;
+        }
+
+        // Otomatik yenileme (5 saniyede bir)
+        setInterval(loadGameData, 5000);
+        
+        // Sayfa yüklendiğinde
+        loadGameData();
+
+        // Debug Modal fonksiyonları
+        let currentGameData = null;
+        let currentTab = 'game';
+
+        function openDebugModal() {
+            document.getElementById('debugModal').classList.add('active');
+            updateDebugContent();
+        }
+
+        function closeDebugModal() {
+            document.getElementById('debugModal').classList.remove('active');
+        }
+
+        // Modal dışına tıklayınca kapat
+        document.getElementById('debugModal').addEventListener('click', (e) => {
+            if (e.target.id === 'debugModal') {
+                closeDebugModal();
+            }
+        });
+
+        // ESC tuşu ile kapat
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeDebugModal();
+            }
+        });
+
+        function showTab(tab) {
+            currentTab = tab;
+            // Tab butonlarını güncelle
+            document.querySelectorAll('.debug-tab').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(tab === 'game' ? 'oyun' : tab === 'players' ? 'oyuncu' : 'raw')) {
+                    btn.classList.add('active');
+                }
+            });
+            updateDebugContent();
+        }
+
+        function updateDebugContent() {
+            const jsonElement = document.getElementById('debugJson');
+            
+            if (!currentGameData) {
+                jsonElement.textContent = '// Henüz oyun verisi yok\n{\n  "status": "no_game",\n  "message": "Aktif oyun bekleniyor..."\n}';
+                return;
+            }
+
+            let dataToShow;
+            switch (currentTab) {
+                case 'game':
+                    dataToShow = {
+                        status: currentGameData.status,
+                        match_id: currentGameData.match_id,
+                        player_count: currentGameData.players?.length || 0,
+                        blue_team: currentGameData.players?.filter(p => p.team_id?.toLowerCase() === 'blue').length || 0,
+                        red_team: currentGameData.players?.filter(p => p.team_id?.toLowerCase() === 'red').length || 0,
+                        timestamp: new Date().toISOString()
+                    };
+                    break;
+                case 'players':
+                    dataToShow = currentGameData.players?.map(p => ({
+                        name: `${p.game_name}#${p.tag_line}`,
+                        team: p.team_id,
+                        level: p.level,
+                        rank: cleanRankText(p.rank),
+                        agent: cleanAgentText(p.agent_name),
+                        vandal_skin: p.vandal_skin,
+                        skin_uuid: p.skin_uuid,
+                        skin_icon: p.skin_icon || 'N/A'
+                    })) || [];
+                    break;
+                case 'raw':
+                default:
+                    dataToShow = currentGameData;
+                    break;
+            }
+
+            jsonElement.textContent = JSON.stringify(dataToShow, null, 2);
+        }
+
+        function copyDebugData() {
+            const jsonText = document.getElementById('debugJson').textContent;
+            navigator.clipboard.writeText(jsonText).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Kopyalandı!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // loadGameData fonksiyonunu güncelle - currentGameData'yı kaydet
+        const originalLoadGameData = loadGameData;
+        loadGameData = async function() {
+            try {
+                const response = await fetch('/api/game');
+                const data = await response.json();
+                currentGameData = data;
+                
+                if (data.status === 'success') {
+                    renderGame(data);
+                    setStatus(true, `Oyun aktif - Match ID: ${data.match_id.substring(0, 8)}...`);
+                } else {
+                    renderNoGame();
+                    setStatus(false, 'Aktif oyun yok');
+                }
+                
+                // Debug panel açıksa güncelle
+                if (document.getElementById('debugModal').classList.contains('active')) {
+                    updateDebugContent();
+                }
+            } catch (error) {
+                console.error('Veri yüklenemedi:', error);
+                currentGameData = { status: 'error', message: error.message };
+                renderNoGame();
+                setStatus(false, 'Bağlantı hatası');
+            }
+        };
+    </script>
+</body>
+</html>

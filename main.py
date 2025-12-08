@@ -2,6 +2,8 @@ import os
 import sys
 import time
 import asyncio
+import threading
+import requests
 from rich.console import Console
 
 from api.local_client import LocalValorantClient
@@ -13,6 +15,10 @@ from utils.colors import Colors
 
 console = Console()
 
+# Web sunucusu ayarları
+WEB_SERVER_ENABLED = True
+WEB_SERVER_PORT = 5000
+
 
 class ValorantTracker:
     def __init__(self):
@@ -22,6 +28,42 @@ class ValorantTracker:
         self.game_service = None
         self.previous_match_id = None
         self.websocket_task = None
+        self.web_server_thread = None
+
+    def start_web_server(self):
+        """Web sunucusunu ayrı bir thread'de başlat"""
+        if not WEB_SERVER_ENABLED:
+            return
+        
+        def run_server():
+            try:
+                from web.app import app
+                import logging
+                # Flask loglarını kapat (sadece önemli hatalar)
+                log = logging.getLogger('werkzeug')
+                log.setLevel(logging.ERROR)
+                
+                app.run(host='0.0.0.0', port=WEB_SERVER_PORT, debug=False, use_reloader=False)
+            except Exception as e:
+                print_status(f"⚠️ Web sunucusu başlatılamadı: {e}", status_type="error")
+        
+        self.web_server_thread = threading.Thread(target=run_server, daemon=True)
+        self.web_server_thread.start()
+        print_status(f"🌐 Web sunucusu başlatıldı: http://localhost:{WEB_SERVER_PORT}", status_type="success")
+
+    def send_to_web(self, game_info: dict):
+        """Oyun bilgilerini web sunucusuna gönder"""
+        if not WEB_SERVER_ENABLED:
+            return
+        
+        try:
+            requests.post(
+                f'http://localhost:{WEB_SERVER_PORT}/api/game/update',
+                json=game_info,
+                timeout=2
+            )
+        except Exception:
+            pass  # Web sunucusu henüz hazır değilse sessizce geç
 
     async def initialize(self) -> bool:
         print_status("🔍 Valorant kontrol ediliyor...", status_type="info")
@@ -85,6 +127,9 @@ class ValorantTracker:
                             print_status("✨ Tablo hazırlanıyor...\n", status_type="info")
 
                             console.print(create_player_table(game_info))
+                            
+                            # Web sunucusuna gönder
+                            self.send_to_web(game_info)
 
                             self.previous_match_id = current_match_id
 
@@ -120,6 +165,8 @@ class ValorantTracker:
         print_status("🎯 VALORANT TRACKER BAŞLATILIYOR...", clear_screen=True, status_type="info")
 
         if await self.initialize():
+            # Web sunucusunu başlat
+            self.start_web_server()
             time.sleep(2)
             await self.monitor_game()
         else:

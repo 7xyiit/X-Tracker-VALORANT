@@ -146,3 +146,126 @@ class ValorantAPIService:
         except Exception as e:
             print(f"Version bilgisi alınamadı: {e}")
             return None
+
+    def get_all_weapon_skins(self) -> Dict[str, Dict]:
+        """
+        Tüm silah skinlerini çeker (displayIcon dahil)
+        Web sitesi için kullanılmak üzere tasarlandı
+        
+        Returns:
+            dict: {
+                skin_uuid: {
+                    "displayName": str,
+                    "displayIcon": str (URL),
+                    "themeUuid": str,
+                    "contentTierUuid": str,
+                    "wallpaper": str veya None
+                }
+            }
+        """
+        try:
+            url = f"{self.base_url}/weapons/skins"
+            params = {"language": self.language}
+
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            skins_data = response.json()["data"]
+
+            skins_dict = {}
+            for skin in skins_data:
+                skin_uuid = skin.get("uuid", "").lower()
+                display_name = skin.get("displayName", "")
+                display_icon = skin.get("displayIcon")  # Ana skin ikonu (levels/chromas değil)
+                theme_uuid = skin.get("themeUuid", "")
+                content_tier_uuid = skin.get("contentTierUuid", "")
+                wallpaper = skin.get("wallpaper")
+
+                # Sadece displayIcon'u olan skinleri ekle
+                if display_icon:
+                    skins_dict[skin_uuid] = {
+                        "displayName": display_name,
+                        "displayIcon": display_icon,
+                        "themeUuid": theme_uuid,
+                        "contentTierUuid": content_tier_uuid,
+                        "wallpaper": wallpaper
+                    }
+
+            return skins_dict
+
+        except Exception as e:
+            print(f"Silah skinleri alınamadı: {e}")
+            return {}
+
+    def get_skin_display_icon(self, skin_uuid: str) -> Optional[str]:
+        """
+        Belirli bir skin'in displayIcon URL'sini döndürür
+        
+        Args:
+            skin_uuid: Skin UUID
+            
+        Returns:
+            str: displayIcon URL veya None
+        """
+        try:
+            url = f"{self.base_url}/weapons/skins/{skin_uuid}"
+            params = {"language": self.language}
+
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            skin_data = response.json()["data"]
+
+            return skin_data.get("displayIcon")
+
+        except Exception as e:
+            print(f"Skin bilgisi alınamadı ({skin_uuid}): {e}")
+            return None
+
+    def get_weapon_skins_by_weapon(self, weapon_uuid: str) -> Dict[str, Dict]:
+        """
+        Belirli bir silahın tüm skinlerini çeker
+        
+        Args:
+            weapon_uuid: Silah UUID (örn: Vandal için "9c82e19d-4575-0200-1a81-3eacf00cf872")
+            
+        Returns:
+            dict: {
+                skin_uuid: {
+                    "displayName": str,
+                    "displayIcon": str (URL),
+                    "themeUuid": str,
+                    "contentTierUuid": str,
+                    "wallpaper": str veya None
+                }
+            }
+        """
+        try:
+            url = f"{self.base_url}/weapons/{weapon_uuid}"
+            params = {"language": self.language}
+
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            weapon_data = response.json()["data"]
+
+            skins_dict = {}
+            for skin in weapon_data.get("skins", []):
+                skin_uuid = skin.get("uuid", "").lower()
+                display_name = skin.get("displayName", "")
+                display_icon = skin.get("displayIcon")
+                theme_uuid = skin.get("themeUuid", "")
+                content_tier_uuid = skin.get("contentTierUuid", "")
+                wallpaper = skin.get("wallpaper")
+
+                if display_icon:
+                    skins_dict[skin_uuid] = {
+                        "displayName": display_name,
+                        "displayIcon": display_icon,
+                        "themeUuid": theme_uuid,
+                        "contentTierUuid": content_tier_uuid,
+                        "wallpaper": wallpaper
+                    }
+
+            return skins_dict
+
+        except Exception as e:
+            print(f"Silah skinleri alınamadı ({weapon_uuid}): {e}")
+            return {}
