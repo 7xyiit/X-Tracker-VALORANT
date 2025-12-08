@@ -1,7 +1,8 @@
 import time
 
-# Cache süresi (5 dakika)
-CACHE_DURATION = 300  # saniye
+# Cache süresi (15 dakika - bir oyun süresi)
+# Rank bilgileri çok sık değişmez, rate limiting'i önlemek için uzun tutuyoruz
+CACHE_DURATION = 900  # saniye (15 dakika)
 
 class Cache:
     def __init__(self):

@@ -1,0 +1,1 @@
+- Kod yapisi duzenli olacak (dosyalama hiyerarşisi). Bunu mutlaka goz onunde bulundur.
