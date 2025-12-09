@@ -38,13 +38,11 @@ class LocalValorantClient:
         try:
             localappdata = os.getenv('LOCALAPPDATA')
             if not localappdata:
-                print("LOCALAPPDATA environment variable bulunamadı!")
                 return False
 
             lockfile_path = os.path.join(localappdata, R'Riot Games\Riot Client\Config\lockfile')
 
             if not os.path.isfile(lockfile_path):
-                print("Valorant çalışmıyor! Lütfen oyunu başlatın.")
                 return False
 
             with open(lockfile_path, 'r') as file:
@@ -61,8 +59,7 @@ class LocalValorantClient:
 
             return True
 
-        except Exception as e:
-            print(f"Lockfile okuma hatası: {e}")
+        except Exception:
             return False
 
     def get_puuid(self) -> Optional[str]:
@@ -84,8 +81,7 @@ class LocalValorantClient:
             self.puuid = response.json().get('subject')
             return self.puuid
 
-        except Exception as e:
-            print(f"PUUID alma hatası: {e}")
+        except Exception:
             return None
 
     def get_tokens(self) -> Tuple[Optional[str], Optional[str]]:
@@ -107,8 +103,7 @@ class LocalValorantClient:
             data = response.json()
             return data.get("accessToken"), data.get("token")
 
-        except Exception as e:
-            print(f"Token alma hatası: {e}")
+        except Exception:
             return None, None
 
     def check_game_status(self, debug: bool = False) -> bool:
@@ -157,8 +152,7 @@ class LocalValorantClient:
 
             return False
 
-        except Exception as e:
-            print(f"Oyun durumu kontrol hatası: {e}")
+        except Exception:
             return False
 
     async def connect_websocket(self, on_message_callback=None):
@@ -168,7 +162,6 @@ class LocalValorantClient:
             on_message_callback: Mesaj geldiğinde çağrılacak fonksiyon
         """
         if not self.port or not self.password:
-            print("WebSocket için port veya password yok!")
             return
 
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
@@ -180,11 +173,8 @@ class LocalValorantClient:
         headers = {"Authorization": f"Basic {auth}"}
 
         try:
-            # Yeni websockets versiyonu için extra_headers
             try:
                 async with websockets.connect(uri, ssl=ssl_context, extra_headers=headers) as websocket:
-                    print("📡 WebSocket bağlantısı başarılı!")
-
                     while True:
                         try:
                             message = await websocket.recv()
@@ -194,17 +184,13 @@ class LocalValorantClient:
                                 await on_message_callback(data)
 
                         except websockets.exceptions.ConnectionClosed:
-                            print("❌ WebSocket bağlantısı kapandı!")
                             break
 
             except TypeError as e:
                 if "extra_headers" in str(e):
-                    # Eski websockets versiyonu için URI authentication
                     uri_with_auth = f"wss://riot:{self.password}@127.0.0.1:{self.port}"
 
                     async with websockets.connect(uri_with_auth, ssl=ssl_context) as websocket:
-                        print("📡 WebSocket bağlantısı başarılı!")
-
                         while True:
                             try:
                                 message = await websocket.recv()
@@ -214,10 +200,9 @@ class LocalValorantClient:
                                     await on_message_callback(data)
 
                             except websockets.exceptions.ConnectionClosed:
-                                print("❌ WebSocket bağlantısı kapandı!")
                                 break
                 else:
                     raise e
 
-        except Exception as e:
-            print(f"⚠️ WebSocket bağlantı hatası: {e}")
+        except Exception:
+            pass

@@ -39,17 +39,15 @@ class ValorantTracker:
             try:
                 from web.app import app
                 import logging
-                # Flask loglarını kapat (sadece önemli hatalar)
                 log = logging.getLogger('werkzeug')
                 log.setLevel(logging.ERROR)
-                
+
                 app.run(host='0.0.0.0', port=WEB_SERVER_PORT, debug=False, use_reloader=False)
-            except Exception as e:
-                print_status(f"⚠️ Web sunucusu başlatılamadı: {e}", status_type="error")
+            except Exception:
+                pass
         
         self.web_server_thread = threading.Thread(target=run_server, daemon=True)
         self.web_server_thread.start()
-        print_status(f"🌐 Web sunucusu başlatıldı: http://localhost:{WEB_SERVER_PORT}", status_type="success")
 
     def send_to_web(self, game_info: dict):
         """Oyun bilgilerini web sunucusuna gönder"""
@@ -66,37 +64,28 @@ class ValorantTracker:
             pass  # Web sunucusu henüz hazır değilse sessizce geç
 
     async def initialize(self) -> bool:
-        print_status("🔍 Valorant kontrol ediliyor...", status_type="info")
-
         if not self.local_client.read_lockfile():
-            print_status("❌ Valorant çalışmıyor! Lütfen oyunu başlatın.", status_type="error")
+            print_status("❌ Valorant çalışmıyor!", status_type="error")
             return False
-
-        print_status("✅ Lockfile başarıyla okundu!", status_type="success")
 
         puuid = self.local_client.get_puuid()
         if not puuid:
-            print_status("❌ PUUID alınamadı!", status_type="error")
+            print_status("❌ Bağlantı hatası!", status_type="error")
             return False
-
-        print_status(f"🆔 PUUID: {puuid[:8]}...", status_type="success")
 
         access_token, entitlements_token = self.local_client.get_tokens()
         if not access_token or not entitlements_token:
-            print_status("❌ Token alınamadı!", status_type="error")
+            print_status("❌ Bağlantı hatası!", status_type="error")
             return False
 
         client_version = self.valorant_api.get_client_version()
         if not client_version:
-            print_status("❌ Client version alınamadı!", status_type="error")
+            print_status("❌ Bağlantı hatası!", status_type="error")
             return False
-
-        print_status(f"🔧 Client Version: {client_version}", status_type="info")
 
         self.riot_api = RiotAPI(access_token, entitlements_token, client_version)
         self.game_service = GameService(self.riot_api, self.valorant_api)
 
-        print_status("✅ Tracker başlatıldı!", status_type="success")
         return True
 
     async def websocket_message_handler(self, data: dict):
@@ -105,8 +94,7 @@ class ValorantTracker:
         Args:
             data: WebSocket mesajı
         """
-        if data.get("eventType") == "Update":
-            print_status("🔄 Oyun durumu güncellendi!", status_type="info")
+        pass
 
     async def monitor_game(self):
         """Oyun durumunu sürekli kontrol eder"""
@@ -122,11 +110,9 @@ class ValorantTracker:
                             if self.websocket_task and not self.websocket_task.done():
                                 self.websocket_task.cancel()
 
-                            print_status("🎮 Yeni oyun tespit edildi!", clear_screen=True, status_type="success")
-                            print_status("📊 Oyuncu bilgileri yükleniyor...", status_type="info")
-                            print_status("✨ Tablo hazırlanıyor...\n", status_type="info")
-
-                            console.print(create_player_table(game_info))
+                            print_status("🎮 Oyun bulundu!", clear_screen=True, status_type="success")
+                            print()
+                            console.print(create_player_table(game_info), justify="center")
                             
                             # Web sunucusuna gönder
                             self.send_to_web(game_info)
@@ -138,18 +124,16 @@ class ValorantTracker:
                             )
                     else:
                         if self.previous_match_id:
-                            print_status("🏁 Oyun bitti! Yeni oyun bekleniyor...", clear_screen=True, status_type="warning")
+                            print_status("🏁 Oyun bitti!", clear_screen=True, status_type="warning")
                             if self.websocket_task and not self.websocket_task.done():
                                 self.websocket_task.cancel()
                             self.previous_match_id = None
                         else:
                             print_status("🔍 Oyun bekleniyor...", clear_screen=True, status_type="info")
-                            print_status("💡 Valorant'ı açıp bir oyuna girdiğinizde bilgiler otomatik görüntülenecek.", status_type="info")
 
                     await asyncio.sleep(25)
 
-                except Exception as e:
-                    print_status(f"⚠️ Hata oluştu: {e}", status_type="error")
+                except Exception:
                     await asyncio.sleep(5)
 
         except KeyboardInterrupt:
@@ -162,15 +146,12 @@ class ValorantTracker:
             raise
 
     async def run(self):
-        print_status("🎯 VALORANT TRACKER BAŞLATILIYOR...", clear_screen=True, status_type="info")
+        print("\033[H\033[J")
+        print_ascii_art()
 
         if await self.initialize():
-            # Web sunucusunu başlat
             self.start_web_server()
-            time.sleep(2)
             await self.monitor_game()
-        else:
-            print_status("❌ Tracker başlatılamadı!", status_type="error")
 
 
 def main():
@@ -179,8 +160,9 @@ def main():
     try:
         asyncio.run(tracker.run())
     except KeyboardInterrupt:
-        print_status("👋 Program kapatılıyor...", clear_screen=True, status_type="warning")
-        print_status("✨ İyi oyunlar!", status_type="success")
+        print("\033[H\033[J")
+        print_ascii_art()
+        print_status("👋 İyi oyunlar!")
         try:
             sys.exit(0)
         except SystemExit:

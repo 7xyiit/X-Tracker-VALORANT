@@ -48,36 +48,38 @@ def ansi_to_rich(text: str) -> str:
 
 
 def print_ascii_art():
-    ascii_art = """
-\033[95m
-██╗  ██╗    ████████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗
-╚██╗██╔╝    ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗
- ╚███╔╝        ██║   ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝
- ██╔██╗        ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗
-██╔╝ ██╗       ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║
-╚═╝  ╚═╝       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                         by @yiitgven7x\033[0m
-"""
-    print(ascii_art)
+    import shutil
+
+    ascii_lines = [
+        "██╗  ██╗    ████████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗",
+        "╚██╗██╔╝    ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗",
+        " ╚███╔╝        ██║   ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝",
+        " ██╔██╗        ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗",
+        "██╔╝ ██╗       ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║",
+        "╚═╝  ╚═╝       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝",
+        "                                                         by @yiitgven7x"
+    ]
+
+    terminal_width = shutil.get_terminal_size().columns
+    print()
+    for line in ascii_lines:
+        padding = (terminal_width - len(line)) // 2
+        print(f"\033[95m{' ' * padding}{line}\033[0m")
+    print()
 
 
 def print_status(message: str, clear_screen: bool = False, status_type: str = "info"):
+    import shutil
+
     if clear_screen:
-        print("\033[H\033[J")  # Konsolu temizle
+        print("\033[H\033[J")
         print_ascii_art()
 
-    timestamp = time.strftime("%H:%M:%S")
+    terminal_width = shutil.get_terminal_size().columns
+    message_length = len(message)
+    padding = (terminal_width - message_length) // 2
 
-    if status_type == "error":
-        prefix = f"{Colors.ERROR}[ERROR]{Colors.RESET}"
-    elif status_type == "success":
-        prefix = f"{Colors.SUCCESS}[SUCCESS]{Colors.RESET}"
-    elif status_type == "warning":
-        prefix = f"{Colors.WARNING}[WARNING]{Colors.RESET}"
-    else:
-        prefix = f"{Colors.INFO}[INFO]{Colors.RESET}"
-
-    print(f"{Colors.BOLD}[{timestamp}]{Colors.RESET} {prefix} {message}")
+    print(f"{' ' * padding}{message}")
 
 
 def create_player_table(game_info: dict) -> Table:
@@ -90,8 +92,6 @@ def create_player_table(game_info: dict) -> Table:
         show_header=True,
         header_style="bold white",
         border_style="bright_white",
-        title="[bold cyan]🎮 OYUN BİLGİLERİ[/bold cyan]",
-        title_style="bold",
         expand=False,
         padding=(0, 1),
         show_lines=False
@@ -103,13 +103,6 @@ def create_player_table(game_info: dict) -> Table:
     table.add_column("Ajan", style="white")
     table.add_column("Vandal Skin", style="white")
 
-    table.add_row(
-        "[bold blue]═══ MAVİ TAKIM ═══[/bold blue]",
-        "", "", "", "",
-        style="bold blue",
-        end_section=True
-    )
-
     for player in team_blue:
         player_name = f"{player['game_name']}#{player['tag_line']}"
         level = str(player.get('level', '?')) if player.get('level') is not None else '?'
@@ -120,12 +113,6 @@ def create_player_table(game_info: dict) -> Table:
         table.add_row(player_name, level, rank, agent_name, skin_name)
 
     table.add_row("", "", "", "", "", end_section=True)
-    table.add_row(
-        "[bold red]═══ KIRMIZI TAKIM ═══[/bold red]",
-        "", "", "", "",
-        style="bold red",
-        end_section=True
-    )
 
     for player in team_red:
         player_name = f"{player['game_name']}#{player['tag_line']}"
