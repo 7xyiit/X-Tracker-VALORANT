@@ -181,6 +181,10 @@ class GameService:
 
             player_identity = player.get("PlayerIdentity", {})
             account_level = player_identity.get("AccountLevel")
+            
+            # HideAccountLevel true ise "Gizli" yaz
+            if player_identity.get("HideAccountLevel", False):
+                account_level = "Gizli"
 
             agent_uuid = loadouts.get("PlayerAgents", {}).get(player_puuid, "")
             agent_name = self._agents.get(agent_uuid.lower() if agent_uuid else "", "Unknown Agent")
