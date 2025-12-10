@@ -242,3 +242,85 @@ class RiotAPI:
         except Exception as e:
             print(f"Sezon bilgisi alma hatası: {e}")
             return None
+
+    def get_match_history(self, puuid: str, start_index: int = 0, end_index: int = 5, queue: str = "competitive") -> Optional[Dict]:
+        """
+        Oyuncunun maç geçmişini alır (cache kullanır)
+        Args:
+            puuid: Player PUUID
+            start_index: Başlangıç indeksi (varsayılan 0)
+            end_index: Bitiş indeksi (varsayılan 5)
+            queue: Kuyruk tipi (varsayılan competitive)
+        Returns:
+            dict: Match history veya None
+        """
+        # Cache key oluştur
+        cache_key = f"{puuid}_{start_index}_{end_index}_{queue}"
+        cached_history = cache.get('match_history', cache_key)
+        if cached_history:
+            return cached_history
+
+        try:
+            response = requests.get(
+                f'https://pd.{self.shard}.a.pvp.net/match-history/v1/history/{puuid}',
+                params={
+                    'startIndex': start_index,
+                    'endIndex': end_index,
+                    'queue': queue
+                },
+                headers=self.headers,
+                verify=False,
+                timeout=10
+            )
+            response.raise_for_status()
+            history_data = response.json()
+
+            # Cache'e kaydet
+            cache.set('match_history', cache_key, history_data)
+
+            return history_data
+
+        except Exception as e:
+            print(f"Maç geçmişi alma hatası: {e}")
+            return None
+
+    def get_completed_match_details(self, match_id: str) -> Optional[Dict]:
+        """
+        Tamamlanmış maç detaylarını alır (istatistikler dahil, cache kullanır)
+        Args:
+            match_id: Match ID
+        Returns:
+            dict: Match details veya None
+        """
+        # Cache'de var mı kontrol et
+        cached_details = cache.get('completed_match_details', match_id)
+        if cached_details:
+            return cached_details
+
+        try:
+            response = requests.get(
+                f'https://pd.{self.shard}.a.pvp.net/match-details/v1/matches/{match_id}',
+                headers=self.headers,
+                verify=False,
+                timeout=10
+            )
+
+            if response.status_code == 429:
+                print(f"⚠️ Rate limit - maç detayları atlanıyor")
+                return None
+
+            response.raise_for_status()
+            match_data = response.json()
+
+            # Cache'e kaydet
+            cache.set('completed_match_details', match_id, match_data)
+
+            return match_data
+
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 429:
+                print(f"⚠️ Rate limit - maç detayları atlanıyor")
+            return None
+        except Exception as e:
+            print(f"Tamamlanmış maç detayları alma hatası: {e}")
+            return None

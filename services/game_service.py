@@ -117,6 +117,10 @@ class GameService:
         self._agents: Optional[Dict[str, str]] = None
         self._skins: Optional[Dict[str, str]] = None
 
+        # Player stats servisi
+        from services.player_stats_service import PlayerStatsService
+        self.player_stats_service = PlayerStatsService(riot_api)
+
     def load_dynamic_data(self):
         """Ajan ve skin verilerini Valorant-API'den dinamik olarak yükler"""
         print("📥 Ajan ve skin verileri yükleniyor...")
@@ -167,7 +171,7 @@ class GameService:
         enriched_players = []
         for idx, player in enumerate(match_details.get("Players", [])):
             if idx > 0:
-                time.sleep(0.5)
+                time.sleep(1)  # Rank API için delay
 
             player_puuid = player.get("Subject", "")
             team_id = player.get("TeamID", "").capitalize()
@@ -210,6 +214,17 @@ class GameService:
             else:
                 print(f"⚠️ Sezon bilgisi bulunamadı")
 
+            # KD ve HS bilgilerini al (arka planda, hata varsa geç)
+            kd = "?"
+            hs_percentage = "?"
+            try:
+                stats = self.player_stats_service.get_kd_hs_stats(player_puuid, match_count=5)
+                if stats:
+                    kd = stats.get("kd", "?")
+                    hs_percentage = stats.get("hs_percentage", "?")
+            except Exception as e:
+                print(f"⚠️ KD/HS hatası ({game_name}#{tag_line}): {e}")
+
             enriched_players.append({
                 "puuid": player_puuid,
                 "game_name": game_name,
@@ -220,7 +235,9 @@ class GameService:
                 "vandal_skin": skin_name,
                 "skin_uuid": skin_uuid,
                 "level": account_level,
-                "rank": rank
+                "rank": rank,
+                "kd": kd,
+                "hs_percentage": hs_percentage
             })
 
         return {

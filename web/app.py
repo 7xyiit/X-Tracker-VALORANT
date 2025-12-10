@@ -21,6 +21,8 @@ valorant_api = ValorantAPIService()
 # Cache için global değişkenler
 _vandal_skins_cache = None
 _current_game_data = None
+_riot_api_instance = None
+_player_stats_service = None
 
 
 def get_vandal_skins_with_icons():
@@ -41,6 +43,15 @@ def set_game_data(game_info: dict):
 def get_game_data():
     """Mevcut oyun verisini döndür"""
     return _current_game_data
+
+
+def set_riot_api(riot_api):
+    """RiotAPI instance'ını kaydet"""
+    global _riot_api_instance, _player_stats_service
+    _riot_api_instance = riot_api
+    if riot_api:
+        from services.player_stats_service import PlayerStatsService
+        _player_stats_service = PlayerStatsService(riot_api)
 
 
 @app.route('/')
@@ -164,11 +175,59 @@ def refresh_cache():
     global _vandal_skins_cache
     _vandal_skins_cache = None
     get_vandal_skins_with_icons()
-    
+
     return jsonify({
         "status": "success",
         "message": "Cache yenilendi"
     })
+
+
+@app.route('/api/player-stats/<puuid>')
+def get_player_kd_hs(puuid):
+    """
+    Belirli bir oyuncunun son 5 maçtan KD ve HS% istatistiklerini döndürür
+
+    Args:
+        puuid: Player PUUID
+
+    Returns:
+        JSON: {
+            "status": "success" | "error",
+            "data": {
+                "kd": float,
+                "hs_percentage": float,
+                "total_kills": int,
+                "total_deaths": int,
+                "total_headshots": int,
+                "total_shots": int
+            }
+        }
+    """
+    if not _player_stats_service:
+        return jsonify({
+            "status": "error",
+            "message": "Stats servisi hazır değil"
+        }), 503
+
+    try:
+        stats = _player_stats_service.get_kd_hs_stats(puuid, match_count=5)
+
+        if stats:
+            return jsonify({
+                "status": "success",
+                "data": stats
+            })
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "İstatistikler alınamadı"
+            }), 404
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 
 if __name__ == '__main__':

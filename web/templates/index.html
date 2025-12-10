@@ -452,21 +452,33 @@
     <script>
         let currentGameData = null;
         let currentTab = 'game';
+        let playerStatsCache = {};
+        let currentMatchId = null;
 
         async function loadGameData() {
             try {
                 const response = await fetch('/api/game');
                 const data = await response.json();
                 currentGameData = data;
-                
+
                 if (data.status === 'success') {
+                    // Match değiştiyse cache'i temizle
+                    if (currentMatchId !== data.match_id) {
+                        playerStatsCache = {};
+                        currentMatchId = data.match_id;
+                    }
+
                     renderGame(data);
                     setStatus(true, `Aktif • ${data.match_id.substring(0, 8)}`);
+
+                    // Oyuncu istatistiklerini yükle
+                    loadPlayerStats(data.players);
                 } else {
                     renderNoGame();
                     setStatus(false, 'Oyun yok');
+                    currentMatchId = null;
                 }
-                
+
                 if (document.getElementById('debugModal').classList.contains('active')) {
                     updateDebugContent();
                 }
@@ -476,6 +488,38 @@
                 renderNoGame();
                 setStatus(false, 'Bağlantı hatası');
             }
+        }
+
+        async function loadPlayerStats(players) {
+            for (const player of players) {
+                // Cache'de varsa atla
+                if (playerStatsCache[player.puuid]) {
+                    continue;
+                }
+
+                try {
+                    const response = await fetch(`/api/player-stats/${player.puuid}`);
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        playerStatsCache[player.puuid] = data.data;
+                        updatePlayerStatsUI(player.puuid, data.data);
+                    }
+                } catch (error) {
+                    console.error(`${player.game_name} için stats yüklenemedi:`, error);
+                }
+
+                // Rate limit önlemi - daha uzun delay
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        }
+
+        function updatePlayerStatsUI(puuid, stats) {
+            const kdCell = document.querySelector(`[data-puuid="${puuid}"] .kd-value`);
+            const hsCell = document.querySelector(`[data-puuid="${puuid}"] .hs-value`);
+
+            if (kdCell) kdCell.textContent = stats.kd || '—';
+            if (hsCell) hsCell.textContent = stats.hs_percentage ? `${stats.hs_percentage}%` : '—';
         }
 
         function setStatus(active, text) {
@@ -508,29 +552,36 @@
                             <th>Seviye</th>
                             <th>Rank</th>
                             <th>Ajan</th>
+                            <th>KD</th>
+                            <th>HS%</th>
                             <th>Vandal Skin</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${players.map(p => `
-                            <tr>
-                                <td>
-                                    <span class="player-name">${p.game_name}</span><span class="player-tag">#${p.tag_line}</span>
-                                </td>
-                                <td class="level">${p.level || '—'}</td>
-                                <td class="rank">${cleanText(p.rank) || '—'}</td>
-                                <td class="agent">${cleanText(p.agent_name) || '—'}</td>
-                                <td>
-                                    <div class="skin-cell">
-                                        ${p.skin_icon 
-                                            ? `<img src="${p.skin_icon}" alt="" class="skin-icon" onerror="this.style.display='none'">`
-                                            : ''
-                                        }
-                                        <span class="skin-name">${p.vandal_skin || '—'}</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('')}
+                        ${players.map(p => {
+                            const cachedStats = playerStatsCache[p.puuid];
+                            return `
+                                <tr data-puuid="${p.puuid}">
+                                    <td>
+                                        <span class="player-name">${p.game_name}</span><span class="player-tag">#${p.tag_line}</span>
+                                    </td>
+                                    <td class="level">${p.level || '—'}</td>
+                                    <td class="rank">${cleanText(p.rank) || '—'}</td>
+                                    <td class="agent">${cleanText(p.agent_name) || '—'}</td>
+                                    <td class="kd-value">${cachedStats ? cachedStats.kd : '?'}</td>
+                                    <td class="hs-value">${cachedStats ? cachedStats.hs_percentage + '%' : '?'}</td>
+                                    <td>
+                                        <div class="skin-cell">
+                                            ${p.skin_icon
+                                                ? `<img src="${p.skin_icon}" alt="" class="skin-icon" onerror="this.style.display='none'">`
+                                                : ''
+                                            }
+                                            <span class="skin-name">${p.vandal_skin || '—'}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
             `;
@@ -600,15 +651,20 @@
                     };
                     break;
                 case 'players':
-                    data = currentGameData.players?.map(p => ({
-                        name: `${p.game_name}#${p.tag_line}`,
-                        team: p.team_id,
-                        level: p.level,
-                        rank: cleanText(p.rank),
-                        agent: cleanText(p.agent_name),
-                        vandal_skin: p.vandal_skin,
-                        skin_icon: p.skin_icon || null
-                    })) || [];
+                    data = currentGameData.players?.map(p => {
+                        const stats = playerStatsCache[p.puuid];
+                        return {
+                            name: `${p.game_name}#${p.tag_line}`,
+                            team: p.team_id,
+                            level: p.level,
+                            rank: cleanText(p.rank),
+                            agent: cleanText(p.agent_name),
+                            kd: stats?.kd || null,
+                            hs_percentage: stats?.hs_percentage || null,
+                            vandal_skin: p.vandal_skin,
+                            skin_icon: p.skin_icon || null
+                        };
+                    }) || [];
                     break;
                 default:
                     data = currentGameData;

@@ -14,7 +14,10 @@ class Cache:
             'match_loadouts': {}, # match_id -> (loadouts_data, timestamp)
             'player_names': {}, # puuid_list_str -> (names_data, timestamp)
             'season_info': {}, # shard -> (season_data, timestamp)
-            'player_level': {} # puuid -> (level_data, timestamp)
+            'player_level': {}, # puuid -> (level_data, timestamp)
+            'player_stats': {}, # puuid -> (kd_hs_stats, timestamp)
+            'match_history': {}, # puuid_params -> (history_data, timestamp)
+            'completed_match_details': {} # match_id -> (completed_match_data, timestamp)
         }
     
     def get(self, cache_type, key):

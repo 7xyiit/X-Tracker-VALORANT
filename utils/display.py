@@ -101,6 +101,8 @@ def create_player_table(game_info: dict) -> Table:
     table.add_column("Seviye", justify="left", style="cyan")
     table.add_column("Rank", style="white")
     table.add_column("Ajan", style="white")
+    table.add_column("KD", justify="center", style="green")
+    table.add_column("HS%", justify="center", style="yellow")
     table.add_column("Vandal Skin", style="white")
 
     for player in team_blue:
@@ -108,19 +110,23 @@ def create_player_table(game_info: dict) -> Table:
         level = str(player.get('level', '?')) if player.get('level') is not None else '?'
         rank = ansi_to_rich(player.get('rank', '?'))
         agent_name = ansi_to_rich(player['agent_name'])
+        kd = str(player.get('kd', '?'))
+        hs = f"{player.get('hs_percentage', '?')}%" if player.get('hs_percentage') != '?' else '?'
         skin_name = player['vandal_skin']
 
-        table.add_row(player_name, level, rank, agent_name, skin_name)
+        table.add_row(player_name, level, rank, agent_name, kd, hs, skin_name)
 
-    table.add_row("", "", "", "", "", end_section=True)
+    table.add_row("", "", "", "", "", "", "", end_section=True)
 
     for player in team_red:
         player_name = f"{player['game_name']}#{player['tag_line']}"
         level = str(player.get('level', '?')) if player.get('level') is not None else '?'
         rank = ansi_to_rich(player.get('rank', '?'))
         agent_name = ansi_to_rich(player['agent_name'])
+        kd = str(player.get('kd', '?'))
+        hs = f"{player.get('hs_percentage', '?')}%" if player.get('hs_percentage') != '?' else '?'
         skin_name = player['vandal_skin']
 
-        table.add_row(player_name, level, rank, agent_name, skin_name)
+        table.add_row(player_name, level, rank, agent_name, kd, hs, skin_name)
 
     return table

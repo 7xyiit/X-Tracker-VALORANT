@@ -34,18 +34,22 @@ class ValorantTracker:
         """Web sunucusunu ayrı bir thread'de başlat"""
         if not WEB_SERVER_ENABLED:
             return
-        
+
         def run_server():
             try:
-                from web.app import app
+                from web.app import app, set_riot_api
                 import logging
                 log = logging.getLogger('werkzeug')
                 log.setLevel(logging.ERROR)
 
+                # RiotAPI instance'ını web servisine aktar
+                if self.riot_api:
+                    set_riot_api(self.riot_api)
+
                 app.run(host='0.0.0.0', port=WEB_SERVER_PORT, debug=False, use_reloader=False)
             except Exception:
                 pass
-        
+
         self.web_server_thread = threading.Thread(target=run_server, daemon=True)
         self.web_server_thread.start()
 
